@@ -1,8 +1,8 @@
 (function () {
     /**
      * Helper function to shortcut select
-     * @param {element} element
-     * @returns
+     * @param {string} element
+     * @returns {NodeList|HTMLElement}
      */
     const el = function (element) {
         if (element.charAt(0) === "#") {
@@ -12,54 +12,67 @@
         }
     };
 
-    const viewer = el("#viewer"),
-        equals = el("#equals"),
-        num = el(".num"),
-        ops = el(".ops"),
-        calculator = el("#calculator");
+    const viewer = el("#viewer");
+    const equals = el("#equals");
+    const num = el(".num");
+    const ops = el(".ops");
+    const calculator = el("#calculator");
 
-    let theNum = "",
-        oldNum = "",
-        resultNum,
-        operator;
+    let theNum = "0";
+    let oldNum = "0";
+    let resultNum;
+    let operator;
 
-    const handleClick = function (event) {
-        const element = event.target.getAttribute("data-num");
-        if (resultNum) {
-            theNum = element;
-            resultNum = "";
-        } else {
-            theNum += element;
-        }
-        console.log(theNum, resultNum);
-
-        viewer.innerHTML = theNum;
-    };
     /**
      * When ops is clicked
      */
     const moveNumb = function () {
-        let element = calculator.getAttribute("data-ops");
+        let element = this.getAttribute("data-ops");
         oldNum = theNum;
         theNum = "";
         operator = element;
 
-        equals.setAttribut("data-result", "");
+        equals.setAttribute("data-result", "");
         console.log(operator);
     };
 
+    const clearAll = function () {
+        oldNum = "0";
+        theNum = "0";
+        viewer.innerHTML = "0";
+        equals.setAttribute("data-result", resultNum);
+    };
+
+    const handleClick = function (event) {
+        const element = event.target;
+
+        if (element.classList.contains("ops")) {
+            moveNumb.call(event.target);
+            console.log(oldNum);
+        } else if (element.classList.contains("num")) {
+            if (resultNum) {
+                resultNum = "";
+                theNum = element.getAttribute("data-num");
+            } else {
+                theNum += element.getAttribute("data-num");
+            }
+        }
+
+        viewer.innerHTML = theNum;
+        equals.addEventListener("click", calculateResult);
+        el("#clear").addEventListener("click", clearAll);
+    };
+
     /**
-     * When Equals is clicked, calculate result
+     * Perform the calculation
      */
-
-    const displayNum = function () {
-        // Covert string to number
-
+    const calculateResult = function () {
+        // Convert string to number
         oldNum = parseFloat(oldNum);
         theNum = parseFloat(theNum);
 
         // Perform operation
-        switch (operation) {
+        switch (operator) {
             case "plus":
                 resultNum = oldNum + theNum;
                 break;
@@ -72,12 +85,17 @@
             case "divided by":
                 resultNum = oldNum / theNum;
                 break;
-
-            // If equal is pressed without an operator, keep number and continue
             default:
                 resultNum = theNum;
         }
+
+        viewer.innerHTML = resultNum;
+        equals.setAttribute("data-result", resultNum);
+
+        oldNum = 0;
+        theNum = resultNum;
     };
 
+    
     calculator.addEventListener("click", handleClick);
 })();
